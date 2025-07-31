@@ -152,29 +152,55 @@ Respond in pure ${getLanguageName(selectedLanguage)} language with stock market 
     if ('speechSynthesis' in window) {
       setIsSpeaking(true);
       
-      // Wait for voices to be loaded
+      // Clean text for better pronunciation
+      const cleanText = text
+        .replace(/\*\*/g, '') // Remove markdown bold
+        .replace(/\*/g, '') // Remove markdown emphasis
+        .trim();
+      
       const speak = () => {
-        const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(cleanText);
         
-        // Get available voices and try to find the best match for the language
+        // Get available voices and prioritize by language
         const voices = speechSynthesis.getVoices();
-        const languageVoice = voices.find(voice => 
-          voice.lang.startsWith(selectedLanguage.split('-')[0]) || 
-          voice.lang === selectedLanguage
-        );
+        console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
         
-        if (languageVoice) {
-          utterance.voice = languageVoice;
-          console.log(`Using voice: ${languageVoice.name} for ${selectedLanguage}`);
+        // Find best voice for the language
+        let selectedVoice = null;
+        
+        // Priority order for voice selection
+        const languageCode = selectedLanguage.split('-')[0]; // 'mr' from 'mr-IN'
+        const voiceSelectionOrder = [
+          voices.find(v => v.lang === selectedLanguage), // Exact match mr-IN
+          voices.find(v => v.lang.startsWith(languageCode)), // Any mr-* variant
+          voices.find(v => v.lang.includes('IN')), // Any Indian voice
+          voices.find(v => v.name.toLowerCase().includes('hindi')), // Hindi as fallback for Indic
+          voices.find(v => v.name.toLowerCase().includes('indian')), // Indian English
+          voices[0] // Default voice
+        ];
+        
+        selectedVoice = voiceSelectionOrder.find(v => v !== undefined);
+        
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          console.log(`Using voice: ${selectedVoice.name} (${selectedVoice.lang}) for ${selectedLanguage}`);
         }
         
-        utterance.rate = 0.7; // Slower for better pronunciation
-        utterance.pitch = 1;
-        utterance.volume = 0.9;
+        // Optimize settings for Marathi pronunciation
+        if (selectedLanguage === 'mr-IN') {
+          utterance.rate = 0.6; // Much slower for better pronunciation
+          utterance.pitch = 1.1; // Slightly higher pitch
+          utterance.volume = 1.0;
+        } else {
+          utterance.rate = 0.7;
+          utterance.pitch = 1;
+          utterance.volume = 0.9;
+        }
+        
         utterance.lang = selectedLanguage;
         
         utterance.onstart = () => {
-          console.log(`Speaking in ${getLanguageName(selectedLanguage)}:`, text);
+          console.log(`Speaking in ${getLanguageName(selectedLanguage)}:`, cleanText);
         };
         
         utterance.onend = () => {
@@ -185,16 +211,25 @@ Respond in pure ${getLanguageName(selectedLanguage)} language with stock market 
         utterance.onerror = (event) => {
           setIsSpeaking(false);
           console.error('Speech synthesis error:', event);
+          
+          // Fallback: try with default settings
+          if (event.error && (event.error as string).includes('language')) {
+            const fallbackUtterance = new SpeechSynthesisUtterance(cleanText);
+            fallbackUtterance.rate = 0.5;
+            fallbackUtterance.pitch = 1;
+            fallbackUtterance.volume = 1;
+            fallbackUtterance.onend = () => setIsSpeaking(false);
+            speechSynthesis.speak(fallbackUtterance);
+          }
         };
         
         speechSynthesis.speak(utterance);
       };
       
-      // Check if voices are already loaded
+      // Ensure voices are loaded
       if (speechSynthesis.getVoices().length > 0) {
         speak();
       } else {
-        // Wait for voices to load
         speechSynthesis.onvoiceschanged = () => {
           speak();
         };
