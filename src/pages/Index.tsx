@@ -62,6 +62,7 @@ const Index = () => {
               onUserQuery={handleUserQuery}
               isListening={isListening}
               onToggleListening={toggleListening}
+              selectedLanguage={selectedLanguage}
             />
           </div>
 

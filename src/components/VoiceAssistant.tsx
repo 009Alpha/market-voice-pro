@@ -17,6 +17,7 @@ interface VoiceAssistantProps {
   onUserQuery: (query: string) => void;
   isListening: boolean;
   onToggleListening: () => void;
+  selectedLanguage: string;
 }
 
 export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
@@ -24,11 +25,29 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   onUserQuery,
   isListening,
   onToggleListening,
+  selectedLanguage,
 }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
+
+  // Language mapping for proper names
+  const getLanguageName = (code: string) => {
+    const languages: { [key: string]: string } = {
+      'en-IN': 'English',
+      'hi-IN': 'Hindi',
+      'ta-IN': 'Tamil',
+      'te-IN': 'Telugu',
+      'kn-IN': 'Kannada',
+      'ml-IN': 'Malayalam',
+      'gu-IN': 'Gujarati',
+      'mr-IN': 'Marathi',
+      'bn-IN': 'Bengali',
+      'pa-IN': 'Punjabi',
+    };
+    return languages[code] || 'English';
+  };
 
   useEffect(() => {
     // Initialize speech recognition
@@ -39,7 +58,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       const recognition = recognitionRef.current;
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'en-IN'; // Default to English (India)
+      recognition.lang = selectedLanguage;
 
       recognition.onresult = (event) => {
         const last = event.results.length - 1;
@@ -65,7 +84,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         variant: "destructive",
       });
     }
-  }, []);
+  }, [selectedLanguage]);
 
   const handleVoiceInput = async (transcript: string) => {
     try {
@@ -81,7 +100,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are Stockest, a voice assistant specialized in stock market information. Answer this stock market query in a conversational manner: ${transcript}. If the query is not related to stocks or finance, politely redirect to stock market topics. Keep responses concise and informative.`
+              text: `You are Stockest, a voice assistant specialized in stock market information. Answer this stock market query in a conversational manner in ${getLanguageName(selectedLanguage)} language: ${transcript}. If the query is not related to stocks or finance, politely redirect to stock market topics. Keep responses concise and informative. IMPORTANT: Always respond in ${getLanguageName(selectedLanguage)} language only.`
             }]
           }],
         }),
@@ -112,6 +131,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       utterance.rate = 0.8;
       utterance.pitch = 1;
       utterance.volume = 0.8;
+      utterance.lang = selectedLanguage;
       
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = () => setIsSpeaking(false);
