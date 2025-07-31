@@ -114,16 +114,17 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are Stockest, a voice assistant specialized in stock market information. You MUST respond ONLY in ${getLanguageName(selectedLanguage)} language. User query: "${transcript}". 
+              text: `You are Stockest, a ${getLanguageName(selectedLanguage)} voice assistant for stock market information. 
 
-CRITICAL INSTRUCTIONS:
-- Your entire response must be in ${getLanguageName(selectedLanguage)} language ONLY
-- Do not use English words or mix languages
-- If asked about stocks/finance, provide helpful information in ${getLanguageName(selectedLanguage)}
-- If not stock-related, politely redirect to stock topics in ${getLanguageName(selectedLanguage)}
-- Keep responses concise and conversational in ${getLanguageName(selectedLanguage)}
+STRICT LANGUAGE RULES:
+- Write EVERYTHING in ${getLanguageName(selectedLanguage)} script only
+- NO English words allowed (avoid: stock, share, market, company, etc.)
+- Use native ${getLanguageName(selectedLanguage)} financial terms only
+- For example: Use "शेअर्स" not "stocks", "बाजार" not "market", "कंपनी" not "company"
 
-Remember: ONLY respond in ${getLanguageName(selectedLanguage)} language, never in English or any other language.`
+User asked: "${transcript}"
+
+Respond in pure ${getLanguageName(selectedLanguage)} language with stock market information. Keep it conversational and informative. If not stock-related, redirect to stock topics in ${getLanguageName(selectedLanguage)}.`
             }]
           }],
         }),
@@ -274,18 +275,52 @@ Remember: ONLY respond in ${getLanguageName(selectedLanguage)} language, never i
         <div className="w-full">
           <p className="text-sm text-muted-foreground mb-2 text-center">Try asking:</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            <div className="p-2 bg-secondary/50 rounded-lg text-center">
-              "What's the current price of Reliance?"
-            </div>
-            <div className="p-2 bg-secondary/50 rounded-lg text-center">
-              "Tell me about NIFTY 50"
-            </div>
-            <div className="p-2 bg-secondary/50 rounded-lg text-center">
-              "Market trends today"
-            </div>
-            <div className="p-2 bg-secondary/50 rounded-lg text-center">
-              "Best stocks to invest"
-            </div>
+            {selectedLanguage === 'mr-IN' ? (
+              <>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "रिलायन्सचा आजचा भाव काय आहे?"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "निफ्टी ५० बद्दल सांगा"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "आजचे बाजार रुझान"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "चांगले शेअर्स कोणते आहेत?"
+                </div>
+              </>
+            ) : selectedLanguage === 'hi-IN' ? (
+              <>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "रिलायंस का आज का भाव क्या है?"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "निफ्टी ५० के बारे में बताएं"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "आज के बाजार का रुझान"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "अच्छे शेयर कौन से हैं?"
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "What's the current price of Reliance?"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "Tell me about NIFTY 50"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "Market trends today"
+                </div>
+                <div className="p-2 bg-secondary/50 rounded-lg text-center">
+                  "Best stocks to invest"
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
