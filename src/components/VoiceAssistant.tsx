@@ -100,7 +100,16 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are Stockest, a voice assistant specialized in stock market information. Answer this stock market query in a conversational manner in ${getLanguageName(selectedLanguage)} language: ${transcript}. If the query is not related to stocks or finance, politely redirect to stock market topics. Keep responses concise and informative. IMPORTANT: Always respond in ${getLanguageName(selectedLanguage)} language only.`
+              text: `You are Stockest, a voice assistant specialized in stock market information. You MUST respond ONLY in ${getLanguageName(selectedLanguage)} language. User query: "${transcript}". 
+
+CRITICAL INSTRUCTIONS:
+- Your entire response must be in ${getLanguageName(selectedLanguage)} language ONLY
+- Do not use English words or mix languages
+- If asked about stocks/finance, provide helpful information in ${getLanguageName(selectedLanguage)}
+- If not stock-related, politely redirect to stock topics in ${getLanguageName(selectedLanguage)}
+- Keep responses concise and conversational in ${getLanguageName(selectedLanguage)}
+
+Remember: ONLY respond in ${getLanguageName(selectedLanguage)} language, never in English or any other language.`
             }]
           }],
         }),
