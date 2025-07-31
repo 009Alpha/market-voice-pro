@@ -59,10 +59,20 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = selectedLanguage;
+      
+      // Enhanced settings for better regional language support
+      recognition.maxAlternatives = 3;
+      recognition.serviceURI = '';
+
+      recognition.onstart = () => {
+        console.log(`Speech recognition started for language: ${selectedLanguage}`);
+      };
 
       recognition.onresult = (event) => {
         const last = event.results.length - 1;
         const transcript = event.results[last][0].transcript;
+        
+        console.log(`Recognized speech (${selectedLanguage}):`, transcript);
         
         if (event.results[last].isFinal) {
           handleVoiceInput(transcript);
@@ -72,10 +82,14 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         toast({
-          title: "Voice Recognition Error",
-          description: "Unable to process voice input. Please try again.",
+          title: "Voice Recognition Error", 
+          description: `Unable to process voice input in ${getLanguageName(selectedLanguage)}. Please try again.`,
           variant: "destructive",
         });
+      };
+
+      recognition.onend = () => {
+        console.log('Speech recognition ended');
       };
     } else {
       toast({
@@ -136,16 +150,54 @@ Remember: ONLY respond in ${getLanguageName(selectedLanguage)} language, never i
   const speakResponse = (text: string) => {
     if ('speechSynthesis' in window) {
       setIsSpeaking(true);
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.8;
-      utterance.pitch = 1;
-      utterance.volume = 0.8;
-      utterance.lang = selectedLanguage;
       
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
+      // Wait for voices to be loaded
+      const speak = () => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Get available voices and try to find the best match for the language
+        const voices = speechSynthesis.getVoices();
+        const languageVoice = voices.find(voice => 
+          voice.lang.startsWith(selectedLanguage.split('-')[0]) || 
+          voice.lang === selectedLanguage
+        );
+        
+        if (languageVoice) {
+          utterance.voice = languageVoice;
+          console.log(`Using voice: ${languageVoice.name} for ${selectedLanguage}`);
+        }
+        
+        utterance.rate = 0.7; // Slower for better pronunciation
+        utterance.pitch = 1;
+        utterance.volume = 0.9;
+        utterance.lang = selectedLanguage;
+        
+        utterance.onstart = () => {
+          console.log(`Speaking in ${getLanguageName(selectedLanguage)}:`, text);
+        };
+        
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          console.log('Speech synthesis ended');
+        };
+        
+        utterance.onerror = (event) => {
+          setIsSpeaking(false);
+          console.error('Speech synthesis error:', event);
+        };
+        
+        speechSynthesis.speak(utterance);
+      };
       
-      speechSynthesis.speak(utterance);
+      // Check if voices are already loaded
+      if (speechSynthesis.getVoices().length > 0) {
+        speak();
+      } else {
+        // Wait for voices to load
+        speechSynthesis.onvoiceschanged = () => {
+          speak();
+        };
+      }
     }
   };
 
