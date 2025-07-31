@@ -59,20 +59,10 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = selectedLanguage;
-      
-      // Enhanced settings for better regional language support
-      recognition.maxAlternatives = 3;
-      recognition.serviceURI = '';
-
-      recognition.onstart = () => {
-        console.log(`Speech recognition started for language: ${selectedLanguage}`);
-      };
 
       recognition.onresult = (event) => {
         const last = event.results.length - 1;
         const transcript = event.results[last][0].transcript;
-        
-        console.log(`Recognized speech (${selectedLanguage}):`, transcript);
         
         if (event.results[last].isFinal) {
           handleVoiceInput(transcript);
@@ -82,14 +72,10 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         toast({
-          title: "Voice Recognition Error", 
-          description: `Unable to process voice input in ${getLanguageName(selectedLanguage)}. Please try again.`,
+          title: "Voice Recognition Error",
+          description: "Unable to process voice input. Please try again.",
           variant: "destructive",
         });
-      };
-
-      recognition.onend = () => {
-        console.log('Speech recognition ended');
       };
     } else {
       toast({
@@ -114,17 +100,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are Stockest, a ${getLanguageName(selectedLanguage)} voice assistant for stock market information. 
-
-STRICT LANGUAGE RULES:
-- Write EVERYTHING in ${getLanguageName(selectedLanguage)} script only
-- NO English words allowed (avoid: stock, share, market, company, etc.)
-- Use native ${getLanguageName(selectedLanguage)} financial terms only
-- For example: Use "शेअर्स" not "stocks", "बाजार" not "market", "कंपनी" not "company"
-
-User asked: "${transcript}"
-
-Respond in pure ${getLanguageName(selectedLanguage)} language with stock market information. Keep it conversational and informative. If not stock-related, redirect to stock topics in ${getLanguageName(selectedLanguage)}.`
+              text: `You are Stockest, a voice assistant specialized in stock market information. Answer this stock market query in a conversational manner in ${getLanguageName(selectedLanguage)} language: ${transcript}. If the query is not related to stocks or finance, politely redirect to stock market topics. Keep responses concise and informative. IMPORTANT: Always respond in ${getLanguageName(selectedLanguage)} language only.`
             }]
           }],
         }),
@@ -151,89 +127,16 @@ Respond in pure ${getLanguageName(selectedLanguage)} language with stock market 
   const speakResponse = (text: string) => {
     if ('speechSynthesis' in window) {
       setIsSpeaking(true);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      utterance.lang = selectedLanguage;
       
-      // Clean text for better pronunciation
-      const cleanText = text
-        .replace(/\*\*/g, '') // Remove markdown bold
-        .replace(/\*/g, '') // Remove markdown emphasis
-        .trim();
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
       
-      const speak = () => {
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        
-        // Get available voices and prioritize by language
-        const voices = speechSynthesis.getVoices();
-        console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
-        
-        // Find best voice for the language
-        let selectedVoice = null;
-        
-        // Priority order for voice selection
-        const languageCode = selectedLanguage.split('-')[0]; // 'mr' from 'mr-IN'
-        const voiceSelectionOrder = [
-          voices.find(v => v.lang === selectedLanguage), // Exact match mr-IN
-          voices.find(v => v.lang.startsWith(languageCode)), // Any mr-* variant
-          voices.find(v => v.lang.includes('IN')), // Any Indian voice
-          voices.find(v => v.name.toLowerCase().includes('hindi')), // Hindi as fallback for Indic
-          voices.find(v => v.name.toLowerCase().includes('indian')), // Indian English
-          voices[0] // Default voice
-        ];
-        
-        selectedVoice = voiceSelectionOrder.find(v => v !== undefined);
-        
-        if (selectedVoice) {
-          utterance.voice = selectedVoice;
-          console.log(`Using voice: ${selectedVoice.name} (${selectedVoice.lang}) for ${selectedLanguage}`);
-        }
-        
-        // Optimize settings for Marathi pronunciation
-        if (selectedLanguage === 'mr-IN') {
-          utterance.rate = 0.6; // Much slower for better pronunciation
-          utterance.pitch = 1.1; // Slightly higher pitch
-          utterance.volume = 1.0;
-        } else {
-          utterance.rate = 0.7;
-          utterance.pitch = 1;
-          utterance.volume = 0.9;
-        }
-        
-        utterance.lang = selectedLanguage;
-        
-        utterance.onstart = () => {
-          console.log(`Speaking in ${getLanguageName(selectedLanguage)}:`, cleanText);
-        };
-        
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          console.log('Speech synthesis ended');
-        };
-        
-        utterance.onerror = (event) => {
-          setIsSpeaking(false);
-          console.error('Speech synthesis error:', event);
-          
-          // Fallback: try with default settings
-          if (event.error && (event.error as string).includes('language')) {
-            const fallbackUtterance = new SpeechSynthesisUtterance(cleanText);
-            fallbackUtterance.rate = 0.5;
-            fallbackUtterance.pitch = 1;
-            fallbackUtterance.volume = 1;
-            fallbackUtterance.onend = () => setIsSpeaking(false);
-            speechSynthesis.speak(fallbackUtterance);
-          }
-        };
-        
-        speechSynthesis.speak(utterance);
-      };
-      
-      // Ensure voices are loaded
-      if (speechSynthesis.getVoices().length > 0) {
-        speak();
-      } else {
-        speechSynthesis.onvoiceschanged = () => {
-          speak();
-        };
-      }
+      speechSynthesis.speak(utterance);
     }
   };
 
@@ -310,52 +213,18 @@ Respond in pure ${getLanguageName(selectedLanguage)} language with stock market 
         <div className="w-full">
           <p className="text-sm text-muted-foreground mb-2 text-center">Try asking:</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            {selectedLanguage === 'mr-IN' ? (
-              <>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "रिलायन्सचा आजचा भाव काय आहे?"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "निफ्टी ५० बद्दल सांगा"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "आजचे बाजार रुझान"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "चांगले शेअर्स कोणते आहेत?"
-                </div>
-              </>
-            ) : selectedLanguage === 'hi-IN' ? (
-              <>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "रिलायंस का आज का भाव क्या है?"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "निफ्टी ५० के बारे में बताएं"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "आज के बाजार का रुझान"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "अच्छे शेयर कौन से हैं?"
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "What's the current price of Reliance?"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "Tell me about NIFTY 50"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "Market trends today"
-                </div>
-                <div className="p-2 bg-secondary/50 rounded-lg text-center">
-                  "Best stocks to invest"
-                </div>
-              </>
-            )}
+            <div className="p-2 bg-secondary/50 rounded-lg text-center">
+              "What's the current price of Reliance?"
+            </div>
+            <div className="p-2 bg-secondary/50 rounded-lg text-center">
+              "Tell me about NIFTY 50"
+            </div>
+            <div className="p-2 bg-secondary/50 rounded-lg text-center">
+              "Market trends today"
+            </div>
+            <div className="p-2 bg-secondary/50 rounded-lg text-center">
+              "Best stocks to invest"
+            </div>
           </div>
         </div>
       </div>
