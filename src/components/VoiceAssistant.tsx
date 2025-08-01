@@ -94,7 +94,7 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       // Fetch real-time stock data first
       let stockContext = "";
       try {
-        const stockResponse = await fetch('/functions/v1/get-stock-data', {
+        const stockResponse = await fetch('https://d512f1a1-eb68-4d6e-98c8-3d2819c5eaf4.supabase.co/functions/v1/get-stock-data', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
