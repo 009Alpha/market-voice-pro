@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
 
 // Add speech recognition types
 declare global {
@@ -95,20 +94,25 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       // Fetch real-time stock data first
       let stockContext = "";
       try {
-        const { data, error } = await supabase.functions.invoke('get-stock-data', {
-          body: { query: transcript, language: selectedLanguage }
+        const stockResponse = await fetch('/functions/v1/get-stock-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: transcript,
+            language: selectedLanguage,
+          }),
         });
-        
-        if (error) {
-          console.error('Supabase function error:', error);
-          // Provide helpful fallback
-          stockContext = `\n\nNote: Real-time data service is currently being deployed. For the most current ${transcript.includes('TCS') ? 'TCS' : 'stock'} price, please check NSE/BSE or financial news websites.`;
-        } else if (data?.context) {
-          stockContext = `\n\nReal-time market data and latest information:\n${data.context}`;
+
+        if (stockResponse.ok) {
+          const stockData = await stockResponse.json();
+          if (stockData.success && stockData.context) {
+            stockContext = `\n\nReal-time market data and latest information:\n${stockData.context}`;
+          }
         }
-      } catch (error) {
-        console.error('Stock data fetch failed, continuing with general response:', error);
-        stockContext = `\n\nNote: Real-time data service is currently being deployed. For the most current stock information, please check official market sources.`;
+      } catch (stockError) {
+        console.log('Stock data fetch failed, continuing with general response:', stockError);
       }
 
       // Generate AI response with real-time context
