@@ -101,11 +101,14 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         
         if (error) {
           console.error('Supabase function error:', error);
+          // Provide helpful fallback
+          stockContext = `\n\nNote: Real-time data service is currently being deployed. For the most current ${transcript.includes('TCS') ? 'TCS' : 'stock'} price, please check NSE/BSE or financial news websites.`;
         } else if (data?.context) {
           stockContext = `\n\nReal-time market data and latest information:\n${data.context}`;
         }
       } catch (error) {
         console.error('Stock data fetch failed, continuing with general response:', error);
+        stockContext = `\n\nNote: Real-time data service is currently being deployed. For the most current stock information, please check official market sources.`;
       }
 
       // Generate AI response with real-time context
