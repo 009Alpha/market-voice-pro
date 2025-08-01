@@ -91,6 +91,31 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       // Add user query to conversation
       onUserQuery(transcript);
       
+      // Fetch real-time stock data first
+      let stockContext = "";
+      try {
+        const stockResponse = await fetch('/functions/v1/get-stock-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: transcript,
+            language: selectedLanguage,
+          }),
+        });
+
+        if (stockResponse.ok) {
+          const stockData = await stockResponse.json();
+          if (stockData.success && stockData.context) {
+            stockContext = `\n\nReal-time market data and latest information:\n${stockData.context}`;
+          }
+        }
+      } catch (stockError) {
+        console.log('Stock data fetch failed, continuing with general response:', stockError);
+      }
+
+      // Generate AI response with real-time context
       const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
         method: 'POST',
         headers: {
@@ -100,7 +125,17 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are Stockest, a voice assistant specialized in stock market information. Answer this stock market query in a conversational manner in ${getLanguageName(selectedLanguage)} language: ${transcript}. If the query is not related to stocks or finance, politely redirect to stock market topics. Keep responses concise and informative. IMPORTANT: Always respond in ${getLanguageName(selectedLanguage)} language only.`
+              text: `You are Stockest, a voice assistant specialized in stock market information. Use the following real-time data to answer the user's query accurately. Answer in a conversational manner in ${getLanguageName(selectedLanguage)} language.
+
+User Query: ${transcript}${stockContext}
+
+Instructions:
+- Use the real-time data provided above to give accurate, current information
+- If real-time data is available, prioritize it over general knowledge
+- Include specific prices, percentages, and market movements when available
+- Keep responses concise but informative
+- Always respond in ${getLanguageName(selectedLanguage)} language only
+- If the query is not related to stocks or finance, politely redirect to stock market topics`
             }]
           }],
         }),
