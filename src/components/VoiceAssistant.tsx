@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 // Add speech recognition types
 declare global {
@@ -94,25 +95,17 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
       // Fetch real-time stock data first
       let stockContext = "";
       try {
-        const stockResponse = await fetch('https://d512f1a1-eb68-4d6e-98c8-3d2819c5eaf4.supabase.co/functions/v1/get-stock-data', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: transcript,
-            language: selectedLanguage,
-          }),
+        const { data, error } = await supabase.functions.invoke('get-stock-data', {
+          body: { query: transcript, language: selectedLanguage }
         });
-
-        if (stockResponse.ok) {
-          const stockData = await stockResponse.json();
-          if (stockData.success && stockData.context) {
-            stockContext = `\n\nReal-time market data and latest information:\n${stockData.context}`;
-          }
+        
+        if (error) {
+          console.error('Supabase function error:', error);
+        } else if (data?.context) {
+          stockContext = `\n\nReal-time market data and latest information:\n${data.context}`;
         }
-      } catch (stockError) {
-        console.log('Stock data fetch failed, continuing with general response:', stockError);
+      } catch (error) {
+        console.error('Stock data fetch failed, continuing with general response:', error);
       }
 
       // Generate AI response with real-time context
