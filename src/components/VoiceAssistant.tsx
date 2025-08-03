@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { VirtualRobot } from './VirtualRobot';
 
 // Add speech recognition types
 declare global {
@@ -163,12 +162,23 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   return (
     <Card className="p-6 bg-gradient-secondary border-border/50 shadow-card">
       <div className="flex flex-col items-center space-y-6">
-        {/* 3D Virtual Robot */}
-        <VirtualRobot
-          isListening={isListening}
-          isSpeaking={isSpeaking}
-          audioLevel={0.5}
-        />
+        {/* Voice Assistant Avatar */}
+        <div className="relative">
+          <div className={`w-32 h-32 rounded-full bg-gradient-primary flex items-center justify-center transition-all duration-300 ${
+            isListening ? 'scale-110 shadow-primary' : 'scale-100'
+          } ${isSpeaking ? 'animate-pulse' : ''}`}>
+            <div className="w-24 h-24 rounded-full bg-background/20 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-background/30 flex items-center justify-center">
+                <span className="text-2xl font-bold text-primary-foreground">S</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Listening indicator */}
+          {isListening && (
+            <div className="absolute inset-0 rounded-full animate-ping bg-primary/30"></div>
+          )}
+        </div>
 
         {/* Assistant Status */}
         <div className="text-center">
