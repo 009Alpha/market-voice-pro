@@ -15,8 +15,6 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
   const leftEyeRef = useRef<THREE.Mesh>(null);
   const rightEyeRef = useRef<THREE.Mesh>(null);
   const mouthRef = useRef<THREE.Mesh>(null);
-  const leftArmRef = useRef<THREE.Group>(null);
-  const rightArmRef = useRef<THREE.Group>(null);
   const { mouse, viewport } = useThree();
   
   const [time, setTime] = useState(0);
@@ -93,159 +91,60 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
       }
     }
 
-    // Arm gestures
-    if (leftArmRef.current && rightArmRef.current) {
-      if (isSpeaking) {
-        leftArmRef.current.rotation.z = Math.sin(newTime * 2) * 0.2 - 0.3;
-        rightArmRef.current.rotation.z = Math.sin(newTime * 2 + Math.PI) * 0.2 + 0.3;
-      } else {
-        leftArmRef.current.rotation.z = THREE.MathUtils.lerp(leftArmRef.current.rotation.z, -0.1, 0.05);
-        rightArmRef.current.rotation.z = THREE.MathUtils.lerp(rightArmRef.current.rotation.z, 0.1, 0.05);
-      }
-    }
   });
 
   // Materials using useMemo to prevent recreation
   const materials = useMemo(() => ({
-    glass: new THREE.MeshPhysicalMaterial({
-      color: '#ffffff',
-      metalness: 0.1,
-      roughness: 0.05,
-      transmission: 0.9,
-      transparent: true,
-      opacity: 0.8,
-      ior: 1.5,
+    head: new THREE.MeshStandardMaterial({
+      color: '#e8e9ea',
+      metalness: 0.3,
+      roughness: 0.4,
     }),
-    glowingEye: new THREE.MeshStandardMaterial({
-      color: '#00ffff',
-      emissive: '#00ffff',
-      emissiveIntensity: isListening ? 2 : 1.2,
-      transparent: true,
+    eye: new THREE.MeshStandardMaterial({
+      color: '#4a90e2',
+      emissive: '#4a90e2',
+      emissiveIntensity: isListening ? 1.2 : 0.8,
     }),
-    digitalMouth: new THREE.MeshStandardMaterial({
-      color: '#ffffff',
-      emissive: isSpeaking ? '#00ff88' : '#0088ff',
-      emissiveIntensity: isSpeaking ? 1.5 : 0.8,
-      transparent: true,
+    mouth: new THREE.MeshStandardMaterial({
+      color: '#2d3748',
+      emissive: isSpeaking ? '#4a90e2' : '#2d3748',
+      emissiveIntensity: isSpeaking ? 0.5 : 0,
     }),
-    metallic: new THREE.MeshStandardMaterial({
-      color: '#f8f9fa',
-      metalness: 0.9,
-      roughness: 0.1,
-    }),
-    ledAccent: new THREE.MeshStandardMaterial({
-      color: '#00ffff',
-      emissive: '#00ffff',
-      emissiveIntensity: 0.8 + Math.sin(time * 3) * 0.2,
-      transparent: true,
-    }),
-    platform: new THREE.MeshStandardMaterial({
-      color: '#1a1a1a',
-      metalness: 0.8,
-      roughness: 0.2,
-      emissive: '#0066ff',
-      emissiveIntensity: 0.2,
-    })
-  }), [isListening, isSpeaking, time]);
+  }), [isListening, isSpeaking]);
 
   return (
-    <group ref={robotRef} position={[0, 0.5, 0]}>
-      {/* Circular Platform Base */}
-      <mesh position={[0, -2.5, 0]} material={materials.platform}>
-        <cylinderGeometry args={[2, 2, 0.1, 32]} />
-      </mesh>
-      
-      {/* LED Ring around Platform */}
-      <mesh position={[0, -2.4, 0]} material={materials.ledAccent}>
-        <torusGeometry args={[1.8, 0.05, 8, 32]} />
-      </mesh>
-
-      {/* Main Body - Sleek glass/metallic torso */}
-      <mesh position={[0, -0.3, 0]} material={materials.glass}>
-        <capsuleGeometry args={[0.6, 1.2, 4, 8]} />
-      </mesh>
-
-      {/* Chest LED Panel */}
-      <mesh position={[0, 0.1, 0.65]} material={materials.ledAccent}>
-        <boxGeometry args={[0.8, 0.3, 0.02]} />
-      </mesh>
-
-      {/* Digital Face/Head */}
-      <group ref={headRef} position={[0, 1.2, 0]}>
-        <mesh material={materials.glass}>
-          <sphereGeometry args={[0.7, 32, 32]} />
+    <group ref={robotRef} position={[0, 0, 0]}>
+      {/* Simple Head */}
+      <group ref={headRef} position={[0, 0, 0]}>
+        <mesh material={materials.head}>
+          <sphereGeometry args={[1, 32, 32]} />
         </mesh>
         
-        {/* Digital Eyes */}
+        {/* Eyes */}
         <mesh
           ref={leftEyeRef}
-          position={[-0.2, 0.1, 0.55]}
-          material={materials.glowingEye}
+          position={[-0.3, 0.2, 0.8]}
+          material={materials.eye}
         >
-          <sphereGeometry args={[0.12, 16, 16]} />
+          <sphereGeometry args={[0.15, 16, 16]} />
         </mesh>
         <mesh
           ref={rightEyeRef}
-          position={[0.2, 0.1, 0.55]}
-          material={materials.glowingEye}
+          position={[0.3, 0.2, 0.8]}
+          material={materials.eye}
         >
-          <sphereGeometry args={[0.12, 16, 16]} />
+          <sphereGeometry args={[0.15, 16, 16]} />
         </mesh>
 
-        {/* Digital Mouth Display */}
+        {/* Animated Mouth */}
         <mesh
           ref={mouthRef}
-          position={[0, -0.15, 0.6]}
-          material={materials.digitalMouth}
+          position={[0, -0.3, 0.85]}
+          material={materials.mouth}
         >
-          <boxGeometry args={[0.35, 0.08, 0.02]} />
-        </mesh>
-
-        {/* Head LED Accents */}
-        <mesh position={[0, 0.5, 0]} material={materials.ledAccent}>
-          <torusGeometry args={[0.3, 0.02, 8, 16]} />
+          <boxGeometry args={[0.4, 0.15, 0.05]} />
         </mesh>
       </group>
-
-      {/* Floating Arms */}
-      <group ref={leftArmRef} position={[-0.9, 0.3, 0]}>
-        <mesh material={materials.metallic}>
-          <capsuleGeometry args={[0.08, 0.8, 4, 8]} />
-        </mesh>
-        <mesh position={[0, -0.6, 0]} material={materials.glass}>
-          <sphereGeometry args={[0.12, 16, 16]} />
-        </mesh>
-        {/* LED Accent on arm */}
-        <mesh position={[0, 0, 0]} material={materials.ledAccent}>
-          <torusGeometry args={[0.1, 0.01, 8, 16]} />
-        </mesh>
-      </group>
-
-      <group ref={rightArmRef} position={[0.9, 0.3, 0]}>
-        <mesh material={materials.metallic}>
-          <capsuleGeometry args={[0.08, 0.8, 4, 8]} />
-        </mesh>
-        <mesh position={[0, -0.6, 0]} material={materials.glass}>
-          <sphereGeometry args={[0.12, 16, 16]} />
-        </mesh>
-        {/* LED Accent on arm */}
-        <mesh position={[0, 0, 0]} material={materials.ledAccent}>
-          <torusGeometry args={[0.1, 0.01, 8, 16]} />
-        </mesh>
-      </group>
-
-      {/* Lower Body LED Strips */}
-      <mesh position={[-0.3, -1.2, 0]} material={materials.ledAccent}>
-        <boxGeometry args={[0.03, 0.8, 0.03]} />
-      </mesh>
-      <mesh position={[0.3, -1.2, 0]} material={materials.ledAccent}>
-        <boxGeometry args={[0.03, 0.8, 0.03]} />
-      </mesh>
-      
-      {/* Floating Base Ring */}
-      <mesh position={[0, -1.8, 0]} material={materials.metallic}>
-        <torusGeometry args={[0.8, 0.05, 8, 32]} />
-      </mesh>
     </group>
   );
 };
