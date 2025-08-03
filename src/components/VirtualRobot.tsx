@@ -95,56 +95,93 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
 
   // Materials using useMemo to prevent recreation
   const materials = useMemo(() => ({
-    head: new THREE.MeshStandardMaterial({
-      color: '#e8e9ea',
-      metalness: 0.3,
-      roughness: 0.4,
+    body: new THREE.MeshStandardMaterial({
+      color: '#f8f9fa',
+      metalness: 0.1,
+      roughness: 0.3,
     }),
-    eye: new THREE.MeshStandardMaterial({
-      color: '#4a90e2',
-      emissive: '#4a90e2',
-      emissiveIntensity: isListening ? 1.2 : 0.8,
+    visor: new THREE.MeshStandardMaterial({
+      color: '#1a2332',
+      metalness: 0.2,
+      roughness: 0.1,
     }),
-    mouth: new THREE.MeshStandardMaterial({
-      color: '#2d3748',
-      emissive: isSpeaking ? '#4a90e2' : '#2d3748',
-      emissiveIntensity: isSpeaking ? 0.5 : 0,
+    glowElement: new THREE.MeshStandardMaterial({
+      color: '#00e5ff',
+      emissive: '#00e5ff',
+      emissiveIntensity: isSpeaking ? 1.0 : 0.6,
     }),
-  }), [isListening, isSpeaking]);
+  }), [isSpeaking]);
 
   return (
     <group ref={robotRef} position={[0, 0, 0]}>
-      {/* Simple Head */}
-      <group ref={headRef} position={[0, 0, 0]}>
-        <mesh material={materials.head}>
-          <sphereGeometry args={[1, 32, 32]} />
+      {/* Main Body - Rounded white body */}
+      <mesh position={[0, -0.8, 0]} material={materials.body}>
+        <sphereGeometry args={[1.2, 32, 32]} />
+      </mesh>
+
+      {/* Head/Helmet structure */}
+      <group ref={headRef} position={[0, 0.5, 0]}>
+        {/* Helmet top */}
+        <mesh position={[0, 0.3, 0]} material={materials.body}>
+          <sphereGeometry args={[0.8, 32, 32]} />
         </mesh>
         
-        {/* Eyes */}
-        <mesh
-          ref={leftEyeRef}
-          position={[-0.3, 0.2, 0.8]}
-          material={materials.eye}
-        >
-          <sphereGeometry args={[0.15, 16, 16]} />
+        {/* Side ear pieces */}
+        <mesh position={[-0.9, 0, 0]} material={materials.body}>
+          <sphereGeometry args={[0.25, 16, 16]} />
         </mesh>
-        <mesh
-          ref={rightEyeRef}
-          position={[0.3, 0.2, 0.8]}
-          material={materials.eye}
-        >
-          <sphereGeometry args={[0.15, 16, 16]} />
+        <mesh position={[0.9, 0, 0]} material={materials.body}>
+          <sphereGeometry args={[0.25, 16, 16]} />
         </mesh>
 
-        {/* Animated Mouth */}
+        {/* Dark visor/face area */}
+        <mesh position={[0, 0, 0.1]} material={materials.visor}>
+          <boxGeometry args={[1.4, 0.8, 0.6]} />
+        </mesh>
+        
+        {/* Left eye - semi-circle shape */}
+        <mesh
+          ref={leftEyeRef}
+          position={[-0.25, 0.1, 0.45]}
+          material={materials.glowElement}
+          rotation={[0, 0, 0]}
+        >
+          <sphereGeometry args={[0.12, 16, 8, 0, Math.PI]} />
+        </mesh>
+        
+        {/* Right eye - semi-circle shape */}
+        <mesh
+          ref={rightEyeRef}
+          position={[0.25, 0.1, 0.45]}
+          material={materials.glowElement}
+          rotation={[0, 0, 0]}
+        >
+          <sphereGeometry args={[0.12, 16, 8, 0, Math.PI]} />
+        </mesh>
+
+        {/* Mouth - small semi-circle */}
         <mesh
           ref={mouthRef}
-          position={[0, -0.3, 0.85]}
-          material={materials.mouth}
+          position={[0, -0.25, 0.45]}
+          material={materials.glowElement}
+          rotation={[0, 0, Math.PI]}
         >
-          <boxGeometry args={[0.4, 0.15, 0.05]} />
+          <sphereGeometry args={[0.06, 16, 8, 0, Math.PI]} />
         </mesh>
       </group>
+
+      {/* Arms */}
+      <mesh position={[-1.4, -0.2, 0]} material={materials.body}>
+        <capsuleGeometry args={[0.2, 1.0, 4, 8]} />
+      </mesh>
+      <mesh position={[1.4, -0.2, 0]} material={materials.body}>
+        <capsuleGeometry args={[0.2, 1.0, 4, 8]} />
+      </mesh>
+
+      {/* Chest detail line */}
+      <mesh position={[0, -0.5, 1.1]} material={materials.visor}>
+        <boxGeometry args={[0.8, 0.02, 0.02]} />
+      </mesh>
     </group>
   );
 };
