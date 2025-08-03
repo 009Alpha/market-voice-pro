@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Text, Sphere, Box, Cylinder, RoundedBox } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface RobotProps {
@@ -132,111 +132,87 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
   return (
     <group ref={robotRef} position={[0, 0, 0]}>
       {/* Body */}
-      <RoundedBox
-        args={[1.2, 1.8, 0.8]}
-        radius={0.1}
-        smoothness={4}
-        position={[0, 0, 0]}
-        material={materials.metal}
-      />
+      <mesh position={[0, 0, 0]} material={materials.metal}>
+        <boxGeometry args={[1.2, 1.8, 0.8]} />
+      </mesh>
 
       {/* Head */}
       <group ref={headRef} position={[0, 1.4, 0]}>
-        <Sphere
-          args={[0.8]}
-          material={materials.metal}
-        />
+        <mesh material={materials.metal}>
+          <sphereGeometry args={[0.8, 32, 32]} />
+        </mesh>
         
         {/* Eyes */}
-        <Sphere
+        <mesh
           ref={leftEyeRef}
-          args={[0.15]}
           position={[-0.25, 0.15, 0.6]}
           material={materials.eye}
-        />
-        <Sphere
+        >
+          <sphereGeometry args={[0.15, 16, 16]} />
+        </mesh>
+        <mesh
           ref={rightEyeRef}
-          args={[0.15]}
           position={[0.25, 0.15, 0.6]}
           material={materials.eye}
-        />
+        >
+          <sphereGeometry args={[0.15, 16, 16]} />
+        </mesh>
 
         {/* Mouth */}
-        <RoundedBox
+        <mesh
           ref={mouthRef}
-          args={[0.4, 0.15, 0.1]}
-          radius={0.05}
           position={[0, -0.2, 0.65]}
           material={materials.mouth}
-        />
+        >
+          <boxGeometry args={[0.4, 0.15, 0.1]} />
+        </mesh>
 
         {/* Head Details */}
-        <Cylinder
-          args={[0.05, 0.05, 0.3]}
-          position={[0, 0.6, 0]}
-          material={materials.metal}
-        />
+        <mesh position={[0, 0.6, 0]} material={materials.metal}>
+          <cylinderGeometry args={[0.05, 0.05, 0.3, 8]} />
+        </mesh>
       </group>
 
       {/* Left Arm */}
       <group ref={leftArmRef} position={[-0.8, 0.6, 0]}>
-        <Cylinder
-          args={[0.1, 0.1, 1.2]}
-          material={materials.metal}
-        />
-        <Sphere
-          args={[0.15]}
-          position={[0, -0.8, 0]}
-          material={materials.metal}
-        />
+        <mesh material={materials.metal}>
+          <cylinderGeometry args={[0.1, 0.1, 1.2, 8]} />
+        </mesh>
+        <mesh position={[0, -0.8, 0]} material={materials.metal}>
+          <sphereGeometry args={[0.15, 16, 16]} />
+        </mesh>
       </group>
 
       {/* Right Arm */}
       <group ref={rightArmRef} position={[0.8, 0.6, 0]}>
-        <Cylinder
-          args={[0.1, 0.1, 1.2]}
-          material={materials.metal}
-        />
-        <Sphere
-          args={[0.15]}
-          position={[0, -0.8, 0]}
-          material={materials.metal}
-        />
+        <mesh material={materials.metal}>
+          <cylinderGeometry args={[0.1, 0.1, 1.2, 8]} />
+        </mesh>
+        <mesh position={[0, -0.8, 0]} material={materials.metal}>
+          <sphereGeometry args={[0.15, 16, 16]} />
+        </mesh>
       </group>
 
       {/* Legs */}
-      <Cylinder
-        args={[0.12, 0.12, 1.0]}
-        position={[-0.3, -1.4, 0]}
-        material={materials.metal}
-      />
-      <Cylinder
-        args={[0.12, 0.12, 1.0]}
-        position={[0.3, -1.4, 0]}
-        material={materials.metal}
-      />
+      <mesh position={[-0.3, -1.4, 0]} material={materials.metal}>
+        <cylinderGeometry args={[0.12, 0.12, 1.0, 8]} />
+      </mesh>
+      <mesh position={[0.3, -1.4, 0]} material={materials.metal}>
+        <cylinderGeometry args={[0.12, 0.12, 1.0, 8]} />
+      </mesh>
 
       {/* Feet */}
-      <RoundedBox
-        args={[0.4, 0.15, 0.6]}
-        radius={0.05}
-        position={[-0.3, -2.0, 0.1]}
-        material={materials.metal}
-      />
-      <RoundedBox
-        args={[0.4, 0.15, 0.6]}
-        radius={0.05}
-        position={[0.3, -2.0, 0.1]}
-        material={materials.metal}
-      />
+      <mesh position={[-0.3, -2.0, 0.1]} material={materials.metal}>
+        <boxGeometry args={[0.4, 0.15, 0.6]} />
+      </mesh>
+      <mesh position={[0.3, -2.0, 0.1]} material={materials.metal}>
+        <boxGeometry args={[0.4, 0.15, 0.6]} />
+      </mesh>
 
       {/* Chest Panel */}
-      <RoundedBox
-        args={[0.6, 0.4, 0.05]}
-        radius={0.02}
-        position={[0, 0.3, 0.45]}
-        material={materials.chest}
-      />
+      <mesh position={[0, 0.3, 0.45]} material={materials.chest}>
+        <boxGeometry args={[0.6, 0.4, 0.05]} />
+      </mesh>
     </group>
   );
 };
@@ -256,31 +232,14 @@ const Environment: React.FC = () => {
       <pointLight position={[-5, 5, 5]} intensity={0.5} color="#4a90e2" />
       <pointLight position={[5, -5, -5]} intensity={0.3} color="#ff6b6b" />
 
-      {/* Background gradient */}
+      {/* Simple background */}
       <mesh position={[0, 0, -10]} scale={[20, 20, 1]}>
         <planeGeometry />
-        <shaderMaterial
-          vertexShader={`
-            varying vec2 vUv;
-            void main() {
-              vUv = uv;
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-          `}
-          fragmentShader={`
-            varying vec2 vUv;
-            void main() {
-              vec3 color1 = vec3(0.1, 0.1, 0.2);
-              vec3 color2 = vec3(0.2, 0.3, 0.5);
-              vec3 color = mix(color1, color2, vUv.y);
-              gl_FragColor = vec4(color, 1.0);
-            }
-          `}
-        />
+        <meshBasicMaterial color="#1a1a2e" />
       </mesh>
 
-      {/* Grid Floor */}
-      <gridHelper args={[20, 20, '#333', '#333']} position={[0, -3, 0]} />
+      {/* Simple grid floor */}
+      <gridHelper args={[20, 20, '#333', '#555']} position={[0, -3, 0]} />
     </>
   );
 };
