@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Sphere, Box, Cylinder, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
@@ -105,24 +105,29 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
     }
   });
 
-  // Materials
-  const metalMaterial = new THREE.MeshStandardMaterial({
-    color: '#e0e0e0',
-    metalness: 0.8,
-    roughness: 0.2,
-  });
-
-  const eyeMaterial = new THREE.MeshStandardMaterial({
-    color: '#00ffff',
-    emissive: '#00ffff',
-    emissiveIntensity: 1,
-  });
-
-  const mouthMaterial = new THREE.MeshStandardMaterial({
-    color: '#0066ff',
-    emissive: '#0066ff',
-    emissiveIntensity: 0.5,
-  });
+  // Materials using useMemo to prevent recreation
+  const materials = useMemo(() => ({
+    metal: new THREE.MeshStandardMaterial({
+      color: '#e0e0e0',
+      metalness: 0.8,
+      roughness: 0.2,
+    }),
+    eye: new THREE.MeshStandardMaterial({
+      color: '#00ffff',
+      emissive: '#00ffff',
+      emissiveIntensity: 1,
+    }),
+    mouth: new THREE.MeshStandardMaterial({
+      color: '#0066ff',
+      emissive: '#0066ff',
+      emissiveIntensity: 0.5,
+    }),
+    chest: new THREE.MeshStandardMaterial({
+      color: '#4a90e2',
+      emissive: '#4a90e2',
+      emissiveIntensity: 0.3,
+    })
+  }), []);
 
   return (
     <group ref={robotRef} position={[0, 0, 0]}>
@@ -132,14 +137,14 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
         radius={0.1}
         smoothness={4}
         position={[0, 0, 0]}
-        material={metalMaterial}
+        material={materials.metal}
       />
 
       {/* Head */}
       <group ref={headRef} position={[0, 1.4, 0]}>
         <Sphere
           args={[0.8]}
-          material={metalMaterial}
+          material={materials.metal}
         />
         
         {/* Eyes */}
@@ -147,13 +152,13 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
           ref={leftEyeRef}
           args={[0.15]}
           position={[-0.25, 0.15, 0.6]}
-          material={eyeMaterial}
+          material={materials.eye}
         />
         <Sphere
           ref={rightEyeRef}
           args={[0.15]}
           position={[0.25, 0.15, 0.6]}
-          material={eyeMaterial}
+          material={materials.eye}
         />
 
         {/* Mouth */}
@@ -162,14 +167,14 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
           args={[0.4, 0.15, 0.1]}
           radius={0.05}
           position={[0, -0.2, 0.65]}
-          material={mouthMaterial}
+          material={materials.mouth}
         />
 
         {/* Head Details */}
         <Cylinder
           args={[0.05, 0.05, 0.3]}
           position={[0, 0.6, 0]}
-          material={metalMaterial}
+          material={materials.metal}
         />
       </group>
 
@@ -177,12 +182,12 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
       <group ref={leftArmRef} position={[-0.8, 0.6, 0]}>
         <Cylinder
           args={[0.1, 0.1, 1.2]}
-          material={metalMaterial}
+          material={materials.metal}
         />
         <Sphere
           args={[0.15]}
           position={[0, -0.8, 0]}
-          material={metalMaterial}
+          material={materials.metal}
         />
       </group>
 
@@ -190,12 +195,12 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
       <group ref={rightArmRef} position={[0.8, 0.6, 0]}>
         <Cylinder
           args={[0.1, 0.1, 1.2]}
-          material={metalMaterial}
+          material={materials.metal}
         />
         <Sphere
           args={[0.15]}
           position={[0, -0.8, 0]}
-          material={metalMaterial}
+          material={materials.metal}
         />
       </group>
 
@@ -203,12 +208,12 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
       <Cylinder
         args={[0.12, 0.12, 1.0]}
         position={[-0.3, -1.4, 0]}
-        material={metalMaterial}
+        material={materials.metal}
       />
       <Cylinder
         args={[0.12, 0.12, 1.0]}
         position={[0.3, -1.4, 0]}
-        material={metalMaterial}
+        material={materials.metal}
       />
 
       {/* Feet */}
@@ -216,13 +221,13 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
         args={[0.4, 0.15, 0.6]}
         radius={0.05}
         position={[-0.3, -2.0, 0.1]}
-        material={metalMaterial}
+        material={materials.metal}
       />
       <RoundedBox
         args={[0.4, 0.15, 0.6]}
         radius={0.05}
         position={[0.3, -2.0, 0.1]}
-        material={metalMaterial}
+        material={materials.metal}
       />
 
       {/* Chest Panel */}
@@ -230,11 +235,7 @@ const Robot: React.FC<RobotProps> = ({ isListening, isSpeaking, audioLevel = 0 }
         args={[0.6, 0.4, 0.05]}
         radius={0.02}
         position={[0, 0.3, 0.45]}
-        material={new THREE.MeshStandardMaterial({
-          color: '#4a90e2',
-          emissive: '#4a90e2',
-          emissiveIntensity: 0.3,
-        })}
+        material={materials.chest}
       />
     </group>
   );
