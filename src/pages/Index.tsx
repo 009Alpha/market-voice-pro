@@ -3,7 +3,6 @@ import { StockMarketHeader } from '@/components/StockMarketHeader';
 import { VoiceAssistant } from '@/components/VoiceAssistant';
 import { ConversationHistory } from '@/components/ConversationHistory';
 import { LanguageSelector } from '@/components/LanguageSelector';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface Message {
   id: string;
@@ -53,10 +52,7 @@ const Index = () => {
       }}></div>
       
       <div className="relative z-10 container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <StockMarketHeader />
-          <ThemeToggle />
-        </div>
+        <StockMarketHeader />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Voice Assistant - Main Column */}
